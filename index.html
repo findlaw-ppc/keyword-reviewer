@@ -111,7 +111,7 @@
   <div class="container">
     <header>
       <h1>Legal PPC Keyword Reviewer</h1>
-      <p class="lead">Paste your keywords and click Run. We’ll analyze intent, recommend match types, and suggest high-intent phrase-match gaps.</p>
+      <p class="lead">Paste your keywords and click the Analyze button. We’ll analyze intent, recommend match types, and suggest high-intent phrase-match gaps.</p>
     </header><section class="card">
   <h2>Campaign Inputs</h2>
   <div class="row row-2">
@@ -425,8 +425,8 @@ best truck accident lawyer"></textarea>
       const locations = parseLocations(document.getElementById("locations").value);
 
       const raw = document.getElementById("keywords").value || "";
-      const lines = raw.split(/\n/).map(s => s.trim()).filter(Boolean);
-      const keywords = dedupeKeepOrder(lines);
+      theLines = raw.split(/\n/).map(s => s.trim()).filter(Boolean);
+      const keywords = dedupeKeepOrder(theLines);
 
       if (!practiceArea) {
         const detected = autoDetectPracticeArea(keywords);
