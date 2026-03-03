@@ -74,7 +74,7 @@
     }
     .section-title { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
     .table-wrap { overflow: auto; border: 1px solid var(--border); border-radius: 10px; background: #0b1220; }
-    table { border-collapse: collapse; width: 100%; min-width: 560px; }
+    table { border-collapse: collapse; width: 100%; min-width: 520px; }
     th, td { border-bottom: 1px solid var(--border); padding: 10px 12px; text-align: left; vertical-align: top; }
     th { background: #0d1528; color: #a7b0c3; font-weight: 600; font-size: 12px; position: sticky; top: 0; z-index: 1; }
     tr:last-child td { border-bottom: none; }
@@ -82,7 +82,6 @@
     .high { background: rgba(34,197,94,.12); color: #86efac; border: 1px solid rgba(34,197,94,.25); }
     .med  { background: rgba(245,158,11,.12); color: #facc15; border: 1px solid rgba(245,158,11,.25); }
     .low  { background: rgba(239,68,68,.12); color: #fca5a5; border: 1px solid rgba(239,68,68,.25); }
-    .neg  { background: rgba(239,68,68,.12); color: #fecaca; border: 1px solid rgba(239,68,68,.25); }
     .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; }
     .empty { color: var(--muted); font-size: 14px; border: 1px dashed var(--border); border-radius: 10px; padding: 16px; text-align: center; background: #0b1220; }
     .assumptions { color: #94a3b8; font-size: 12px; margin-top: 8px; }
@@ -92,12 +91,17 @@
     .sum-med  { color: #facc15; border-color: rgba(245,158,11,.25); }
     .sum-low  { color: #fca5a5; border-color: rgba(239,68,68,.25); }
     .sum-total{ color: #a7b0c3; }
-    .sum-neg  { color: #fca5a5; }
-    .results-grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
-    @media (min-width: 980px) {
-      .results-grid { grid-template-columns: 1fr 1fr; align-items: start; }
+    .results-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
     }
-    .btn-mini { padding: 6px 8px; font-size: 12px; border-radius: 8px; }
+    @media (min-width: 980px) {
+      .results-grid {
+        grid-template-columns: 1fr 1fr;
+        align-items: start;
+      }
+    }
   </style>
 </head>
 <body>
@@ -164,14 +168,13 @@ best truck accident lawyer"></textarea>
             <tr>
               <th>Keyword</th>
               <th>Search Intent</th>
-              <th>Status</th>
             </tr>
           </thead>
           <tbody></tbody>
         </table>
       </div>
       <div class="assumptions">
-        Assumptions: local “near me”/city terms → Exact; admin/info terms → negatives. “Status” shows which terms were flagged as Negative.
+        Assumptions: local “near me”/city terms → Exact; administrative/info terms are shown as Low intent.
       </div>
     </div>
   </section>
@@ -204,11 +207,9 @@ best truck accident lawyer"></textarea>
 
     const ADMIN_LOW = ["form","forms","template","sample","pdf","statute","code","subsection","definition","meaning","requirements","eligibility","statutory","clerk","address","phone","hours","directions","location","dmv","uscis","ice","dol","court calendar","case lookup","docket","public records","record search","file online","pay ticket","traffic school","fine payment","how to become","jobs","job","salary","internship","bar exam","law school","pro bono","legal aid","public defender","self help","diy","wiki","reddit"];
     const INFO_MED = ["what is","how to","penalties","punishment","statute of limitations","average settlement","settlement","compensation","damages","fault","process","steps","timeline","rights","can i","should i","best time to"];
-    const COMMERCIAL_TERMS = ["lawyer","attorney","law firm","defense attorney","counsel"];
+    const COMMERCIAL_TERMS = ["lawyer","attorney","law firm","defense attorney","counsel","attorneys","lawyers","law firms","defense attorneys"];
     const URGENCY = ["emergency","24/7","24 7","24-7","immediately","now","today","urgent","asap","open now","same day","after hours","tonight"];
     const QUALIFIERS = ["best","top","top rated","top-rated","reviews","5 star","five star","near me","nearby","local","expert","specialist","board certified","award winning","recommended"];
-    const CONTACT = ["free consultation","free case evaluation","call","book","schedule","speak to","hire","retain","chat"];
-    const PRICE = ["cost","price","fees","cheap","affordable","low cost","low-cost","discount"];
 
     const PRACTICE_PROFILES = {
       "personal injury": { heads: ["personal injury","injury","accident","car accident","auto accident","truck accident","semi truck accident","motorcycle accident","uber accident","lyft accident","rideshare accident","pedestrian accident","bicycle accident","wrongful death","brain injury","tbi","spinal cord injury","back injury","slip and fall","premises liability","dog bite","nursing home abuse","construction accident","work injury","burn injury","product liability","boating accident"] },
@@ -234,11 +235,11 @@ best truck accident lawyer"></textarea>
     function detectUrgency(n) { return includesPhrase(n, URGENCY); }
     function detectQual(n) { return includesPhrase(n, QUALIFIERS); }
     function detectNearMe(n) { return n.includes("near me") || n.includes("nearby"); }
-    function detectHeadMatch(n, heads) { return heads.some(h => n.includes(tokenize(h))); }
+    function detectHeadMatch(norm, heads) { return heads.some(h => norm.includes(tokenize(h))); }
     function wordCount(s) { return s.split(/\s+/).filter(Boolean).length; }
 
     function isGenericShort(norm, practiceHeads) {
-      const mods = [...URGENCY, ...QUALIFIERS, ...CONTACT, "near me"];
+      const mods = [...URGENCY, ...QUALIFIERS, "near me"];
       const hasMods = includesPhrase(norm, mods);
       const wc = wordCount(norm);
       const hasCommercial = detectCommercial(norm);
@@ -294,6 +295,7 @@ best truck accident lawyer"></textarea>
 
     function parseLocations(raw) { if (!raw) return []; return raw.split(/[;,]/g).map(s => s.trim()).filter(Boolean); }
 
+    // Sanitize and quote for Ads
     function normalizeForAds(k) {
       let t = (k || "").trim();
       t = t.replace(/^["']+/, "");
@@ -308,7 +310,6 @@ best truck accident lawyer"></textarea>
       tbody.innerHTML = "";
       for (const r of rows) {
         const tr = document.createElement("tr");
-
         const tdK = document.createElement("td");
         tdK.textContent = r.keyword;
 
@@ -318,17 +319,7 @@ best truck accident lawyer"></textarea>
         badgeIntent.textContent = r.intent;
         tdI.appendChild(badgeIntent);
 
-        const tdS = document.createElement("td");
-        if (r.mtType === "Exclude") {
-          const b = document.createElement("span");
-          b.className = "badge neg";
-          b.textContent = "Negative";
-          tdS.appendChild(b);
-        } else {
-          tdS.textContent = "";
-        }
-
-        tr.appendChild(tdK); tr.appendChild(tdI); tr.appendChild(tdS);
+        tr.appendChild(tdK); tr.appendChild(tdI);
         tbody.appendChild(tr);
       }
     }
@@ -454,8 +445,8 @@ best truck accident lawyer"></textarea>
       const practiceHeads = PRACTICE_PROFILES[practiceArea]?.heads || (practiceArea ? [practiceArea] : []);
       const rows = keywords.map(k => {
         const norm = tokenize(k);
-        const { intent, mt } = classifyIntent(norm, { locations, practiceHeads });
-        return { keyword: k, intent, mtType: mt.type };
+        const { intent } = classifyIntent(norm, { locations, practiceHeads });
+        return { keyword: k, intent };
       });
 
       analysisCache = rows;
@@ -464,7 +455,6 @@ best truck accident lawyer"></textarea>
       const high = rows.filter(r => r.intent === "High").length;
       const med = rows.filter(r => r.intent === "Medium").length;
       const low = rows.filter(r => r.intent === "Low").length;
-      const negatives = rows.filter(r => r.mtType === "Exclude").length;
 
       const summary = document.getElementById("summaryBar");
       summary.innerHTML = `
@@ -472,7 +462,6 @@ best truck accident lawyer"></textarea>
         <span class="sum-badge sum-high">High: ${high}</span>
         <span class="sum-badge sum-med">Medium: ${med}</span>
         <span class="sum-badge sum-low">Low: ${low}</span>
-        <span class="sum-badge sum-neg">Negatives flagged: ${negatives}</span>
         ${practiceArea ? `<span class="sum-badge">Practice: ${practiceArea}</span>` : ""}
       `;
       summary.style.display = "flex";
