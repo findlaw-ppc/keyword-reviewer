@@ -60,7 +60,6 @@
     }
     button.ghost { background: transparent; border: 1px solid var(--border); color: var(--text); }
     button:active { transform: translateY(1px); }
-    /* Shorter green button on desktop; full-width on mobile */
     .primary-large {
       display: inline-block;
       font-size: 16px;
@@ -75,7 +74,7 @@
     }
     .section-title { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
     .table-wrap { overflow: auto; border: 1px solid var(--border); border-radius: 10px; background: #0b1220; }
-    table { border-collapse: collapse; width: 100%; min-width: 520px; }
+    table { border-collapse: collapse; width: 100%; min-width: 560px; }
     th, td { border-bottom: 1px solid var(--border); padding: 10px 12px; text-align: left; vertical-align: top; }
     th { background: #0d1528; color: #a7b0c3; font-weight: 600; font-size: 12px; position: sticky; top: 0; z-index: 1; }
     tr:last-child td { border-bottom: none; }
@@ -83,6 +82,7 @@
     .high { background: rgba(34,197,94,.12); color: #86efac; border: 1px solid rgba(34,197,94,.25); }
     .med  { background: rgba(245,158,11,.12); color: #facc15; border: 1px solid rgba(245,158,11,.25); }
     .low  { background: rgba(239,68,68,.12); color: #fca5a5; border: 1px solid rgba(239,68,68,.25); }
+    .neg  { background: rgba(239,68,68,.12); color: #fecaca; border: 1px solid rgba(239,68,68,.25); }
     .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; }
     .empty { color: var(--muted); font-size: 14px; border: 1px dashed var(--border); border-radius: 10px; padding: 16px; text-align: center; background: #0b1220; }
     .assumptions { color: #94a3b8; font-size: 12px; margin-top: 8px; }
@@ -93,18 +93,11 @@
     .sum-low  { color: #fca5a5; border-color: rgba(239,68,68,.25); }
     .sum-total{ color: #a7b0c3; }
     .sum-neg  { color: #fca5a5; }
-    /* Two-column layout for analysis (left) and suggestions (right) */
-    .results-grid {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 16px;
-    }
+    .results-grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
     @media (min-width: 980px) {
-      .results-grid {
-        grid-template-columns: 1fr 1fr;
-        align-items: start;
-      }
+      .results-grid { grid-template-columns: 1fr 1fr; align-items: start; }
     }
+    .btn-mini { padding: 6px 8px; font-size: 12px; border-radius: 8px; }
   </style>
 </head>
 <body>
@@ -171,13 +164,14 @@ best truck accident lawyer"></textarea>
             <tr>
               <th>Keyword</th>
               <th>Search Intent</th>
+              <th>Status</th>
             </tr>
           </thead>
           <tbody></tbody>
         </table>
       </div>
       <div class="assumptions">
-        Assumptions: local “near me”/city terms → Exact; admin/info terms → negatives.
+        Assumptions: local “near me”/city terms → Exact; admin/info terms → negatives. “Status” shows which terms were flagged as Negative.
       </div>
     </div>
   </section>
@@ -188,7 +182,7 @@ best truck accident lawyer"></textarea>
       <h2>High-Intent Keyword Suggestions (Phrase Match)</h2>
     </div>
 
-    <div id="gapEmpty" class="empty">Click Run to see phrase-match ideas tailored to your practice area and locations.</div>
+    <div id="gapEmpty" class="empty">Click Analyze to see phrase-match ideas tailored to your practice area and locations.</div>
 
     <div id="gapResults" style="display:none;">
       <div class="table-wrap">
@@ -300,7 +294,6 @@ best truck accident lawyer"></textarea>
 
     function parseLocations(raw) { if (!raw) return []; return raw.split(/[;,]/g).map(s => s.trim()).filter(Boolean); }
 
-    // Sanitize and quote for Ads
     function normalizeForAds(k) {
       let t = (k || "").trim();
       t = t.replace(/^["']+/, "");
@@ -315,17 +308,27 @@ best truck accident lawyer"></textarea>
       tbody.innerHTML = "";
       for (const r of rows) {
         const tr = document.createElement("tr");
-        const tdK = document.createElement("td");
-        const tdI = document.createElement("td");
 
+        const tdK = document.createElement("td");
         tdK.textContent = r.keyword;
 
-        const badge = document.createElement("span");
-        badge.className = "badge " + (r.intent === "High" ? "high" : r.intent === "Medium" ? "med" : "low");
-        badge.textContent = r.intent;
-        tdI.appendChild(badge);
+        const tdI = document.createElement("td");
+        const badgeIntent = document.createElement("span");
+        badgeIntent.className = "badge " + (r.intent === "High" ? "high" : r.intent === "Medium" ? "med" : "low");
+        badgeIntent.textContent = r.intent;
+        tdI.appendChild(badgeIntent);
 
-        tr.appendChild(tdK); tr.appendChild(tdI);
+        const tdS = document.createElement("td");
+        if (r.mtType === "Exclude") {
+          const b = document.createElement("span");
+          b.className = "badge neg";
+          b.textContent = "Negative";
+          tdS.appendChild(b);
+        } else {
+          tdS.textContent = "";
+        }
+
+        tr.appendChild(tdK); tr.appendChild(tdI); tr.appendChild(tdS);
         tbody.appendChild(tr);
       }
     }
@@ -425,8 +428,8 @@ best truck accident lawyer"></textarea>
       const locations = parseLocations(document.getElementById("locations").value);
 
       const raw = document.getElementById("keywords").value || "";
-      theLines = raw.split(/\n/).map(s => s.trim()).filter(Boolean);
-      const keywords = dedupeKeepOrder(theLines);
+      const lines = raw.split(/\n/).map(s => s.trim()).filter(Boolean);
+      const keywords = dedupeKeepOrder(lines);
 
       if (!practiceArea) {
         const detected = autoDetectPracticeArea(keywords);
@@ -504,7 +507,6 @@ best truck accident lawyer"></textarea>
 
     function runAll() { const ctx = analyze(); if (!ctx) return; genGaps(ctx); }
 
-    // UI bindings
     document.getElementById("runBtn").addEventListener("click", () => runAll());
     document.addEventListener("keydown", (e) => { if ((e.ctrlKey || e.metaKey) && e.key === "Enter") runAll(); });
     document.getElementById("clearBtn").addEventListener("click", () => {
