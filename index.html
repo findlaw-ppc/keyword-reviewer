@@ -59,34 +59,44 @@
       cursor: pointer; transition: transform .05s ease-in-out, opacity .15s ease-in-out;
     }
     button.ghost { background: transparent; border: 1px solid var(--border); color: var(--text); }
-    button:active { transform: translateY(1px); }
-    .primary-large { font-size: 16px; padding: 14px 18px; width: 100%; }
-    .section-title { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
-    .table-wrap { overflow: auto; border: 1px solid var(--border); border-radius: 10px; background: #0b1220; }
-    table { border-collapse: collapse; width: 100%; min-width: 820px; }
-    th, td { border-bottom: 1px solid var(--border); padding: 10px 12px; text-align: left; vertical-align: top; }
-    th { background: #0d1528; color: #a7b0c3; font-weight: 600; font-size: 12px; position: sticky; top: 0; z-index: 1; }
-    tr:last-child td { border-bottom: none; }
-    .badge { display: inline-flex; align-items: center; gap: 6px; padding: 2px 8px; border-radius: 999px; font-size: 12px; font-weight: 600; }
-    .high { background: rgba(34,197,94,.12); color: #86efac; border: 1px solid rgba(34,197,94,.25); }
-    .med  { background: rgba(245,158,11,.12); color: #facc15; border: 1px solid rgba(245,158,11,.25); }
-    .low  { background: rgba(239,68,68,.12); color: #fca5a5; border: 1px solid rgba(239,68,68,.25); }
-    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; }
-    .copybox { width: 100%; background: #0b1220; border: 1px solid var(--border); border-radius: 8px; padding: 10px; color: var(--text); min-height: 100px; resize: vertical; }
-    .note { color: var(--muted); font-size: 12px; }
-    .empty { color: var(--muted); font-size: 14px; border: 1px dashed var(--border); border-radius: 10px; padding: 16px; text-align: center; background: #0b1220; }
-    .rationale { color: #cbd5e1; }
-    .assumptions { color: #94a3b8; font-size: 12px; margin-top: 8px; }
-    .summary { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
-    .sum-badge {
-      display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 999px; font-size: 12px; border: 1px solid var(--border); background: #0b1220; color: #cbd5e1;
-    }
-    .sum-high { color: #86efac; border-color: rgba(34,197,94,.25); }
-    .sum-med  { color: #facc15; border-color: rgba(245,158,11,.25); }
-    .sum-low  { color: #fca5a5; border-color: rgba(239,68,68,.25); }
-    .sum-total{ color: #a7b0c3; }
-    .sum-neg  { color: #fca5a5; }
-    .btn-mini { padding: 6px 8px; font-size: 12px; border-radius: 8px; }
+    button:active { transform: translateY(1px); }/* Shorter green button on desktop; full-width on mobile */
+.primary-large {
+  display: inline-block;
+  font-size: 16px;
+  line-height: 1.2;
+  padding: 12px 16px;
+  width: auto;              /* no longer full width */
+  max-width: 420px;         /* cap width */
+  white-space: normal;      /* allow wrap if needed */
+}
+@media (max-width: 640px) {
+  .primary-large { width: 100%; max-width: none; }
+}
+
+.section-title { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+.table-wrap { overflow: auto; border: 1px solid var(--border); border-radius: 10px; background: #0b1220; }
+table { border-collapse: collapse; width: 100%; min-width: 820px; }
+th, td { border-bottom: 1px solid var(--border); padding: 10px 12px; text-align: left; vertical-align: top; }
+th { background: #0d1528; color: #a7b0c3; font-weight: 600; font-size: 12px; position: sticky; top: 0; z-index: 1; }
+tr:last-child td { border-bottom: none; }
+.badge { display: inline-flex; align-items: center; gap: 6px; padding: 2px 8px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+.high { background: rgba(34,197,94,.12); color: #86efac; border: 1px solid rgba(34,197,94,.25); }
+.med  { background: rgba(245,158,11,.12); color: #facc15; border: 1px solid rgba(245,158,11,.25); }
+.low  { background: rgba(239,68,68,.12); color: #fca5a5; border: 1px solid rgba(239,68,68,.25); }
+.mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; }
+.copybox { width: 100%; background: #0b1220; border: 1px solid var(--border); border-radius: 8px; padding: 10px; color: var(--text); min-height: 100px; resize: vertical; }
+.note { color: var(--muted); font-size: 12px; }
+.empty { color: var(--muted); font-size: 14px; border: 1px dashed var(--border); border-radius: 10px; padding: 16px; text-align: center; background: #0b1220; }
+.rationale { color: #cbd5e1; }
+.assumptions { color: #94a3b8; font-size: 12px; margin-top: 8px; }
+.summary { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+.sum-badge { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 999px; font-size: 12px; border: 1px solid var(--border); background: #0b1220; color: #cbd5e1; }
+.sum-high { color: #86efac; border-color: rgba(34,197,94,.25); }
+.sum-med  { color: #facc15; border-color: rgba(245,158,11,.25); }
+.sum-low  { color: #fca5a5; border-color: rgba(239,68,68,.25); }
+.sum-total{ color: #a7b0c3; }
+.sum-neg  { color: #fca5a5; }
+.btn-mini { padding: 6px 8px; font-size: 12px; border-radius: 8px; }
   </style>
 </head>
 <body>
@@ -221,9 +231,7 @@ best truck accident lawyer"></textarea>
       "medical malpractice": { heads: ["medical malpractice","birth injury","surgical error","misdiagnosis","hospital negligence","nursing error","medication error","anesthesia error","er negligence","failure to diagnose"] }
     };
 
-    function tokenize(s) {
-      return (s || "").toLowerCase().replace(/[“”"’']/g, "").replace(/[^\w\s\-]/g, " ").replace(/\s+/g, " ").trim();
-    }
+    function tokenize(s) { return (s || "").toLowerCase().replace(/[“”"’']/g, "").replace(/[^\w\s\-]/g, " ").replace(/\s+/g, " ").trim(); }
     function includesAny(hay, arr) { const s = " " + hay + " "; return arr.some(x => s.includes(" " + x + " ")); }
     function includesPhrase(hay, arr) { return arr.some(x => hay.includes(x)); }
     function anyLocationMatch(norm, locations) { if (!locations || locations.length === 0) return false; return locations.some(loc => norm.includes(tokenize(loc))); }
@@ -317,13 +325,13 @@ best truck accident lawyer"></textarea>
     // Sanitize and quote for Ads; strips stray $, quotes, extra spaces
     function normalizeForAds(k) {
       let t = (k || "").trim();
-      t = t.replace(/^["']+/, "");    // leading quotes
-      t = t.replace(/["']+$/, "");    // trailing quotes
-      t = t.replace(/^\$+/, "");      // leading dollar signs
-      t = t.replace(/\s+/g, " ");     // collapse spaces
+      t = t.replace(/^["']+/, "");
+      t = t.replace(/["']+$/, "");
+      t = t.replace(/^\$+/, "");
+      t = t.replace(/\s+/g, " ");
       return t;
     }
-    function toQuoted(k) { const t = normalizeForAds(k); return `"${t}"`; }
+    function toQuoted(k) { return `"${normalizeForAds(k)}"`; }
     function buildPhraseList(rows) { return rows.map(r => toQuoted(r.keyword)).join("\n"); }
 
     function renderTable(tbody, rows) {
@@ -358,7 +366,7 @@ best truck accident lawyer"></textarea>
         const tdK = document.createElement("td");
         const kSpan = document.createElement("span");
         kSpan.className = "mono";
-        kSpan.textContent = toQuoted(r.keyword); // shows sanitized + quoted
+        kSpan.textContent = toQuoted(r.keyword);
         tdK.appendChild(kSpan);
 
         const tdI = document.createElement("td");
@@ -399,7 +407,6 @@ best truck accident lawyer"></textarea>
       return out;
     }
 
-    // Auto-detect practice area if blank
     function autoDetectPracticeArea(keywords) {
       const scores = {};
       const keysNorm = keywords.map(k => tokenize(k));
@@ -413,7 +420,6 @@ best truck accident lawyer"></textarea>
       return null;
     }
 
-    // Intent gaps
     function generateGaps({ practiceArea, locations, currentNormSet }) {
       const heads = (PRACTICE_PROFILES[practiceArea]?.heads) || (practiceArea ? [practiceArea] : []);
       if (heads.length === 0) return [];
@@ -470,7 +476,6 @@ best truck accident lawyer"></textarea>
       return rows;
     }
 
-    // Analyze existing keywords
     let analysisCache = [];
     function analyze() {
       const practiceAreaInput = document.getElementById("practiceArea");
@@ -481,7 +486,6 @@ best truck accident lawyer"></textarea>
       const lines = raw.split(/\n/).map(s => s.trim()).filter(Boolean);
       const keywords = dedupeKeepOrder(lines);
 
-      // Auto-detect if blank
       if (!practiceArea) {
         const detected = autoDetectPracticeArea(keywords);
         if (detected) {
@@ -518,7 +522,6 @@ best truck accident lawyer"></textarea>
 
       analysisCache = rows;
 
-      // Summary
       const total = rows.length;
       const high = rows.filter(r => r.intent === "High").length;
       const med = rows.filter(r => r.intent === "Medium").length;
@@ -544,7 +547,6 @@ best truck accident lawyer"></textarea>
       return { keywords, practiceArea, locations };
     }
 
-    // Generate gaps
     let gapCache = [];
     function genGaps(ctx) {
       const practiceArea = (ctx.practiceArea || "").toLowerCase().trim();
@@ -567,13 +569,8 @@ best truck accident lawyer"></textarea>
       document.getElementById("gapSection").scrollIntoView({ behavior: "smooth", block: "start" });
     }
 
-    function runAll() {
-      const ctx = analyze();
-      if (!ctx) return;
-      genGaps(ctx);
-    }
+    function runAll() { const ctx = analyze(); if (!ctx) return; genGaps(ctx); }
 
-    // UI bindings
     document.getElementById("runBtn").addEventListener("click", () => runAll());
     document.addEventListener("keydown", (e) => { if ((e.ctrlKey || e.metaKey) && e.key === "Enter") runAll(); });
     document.getElementById("clearBtn").addEventListener("click", () => {
@@ -591,7 +588,6 @@ best truck accident lawyer"></textarea>
       gapCache = [];
     });
 
-    // Clipboard helpers
     function copyToClipboard(text) {
       const tmp = document.createElement("textarea");
       tmp.value = text;
