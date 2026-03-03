@@ -60,6 +60,7 @@
     }
     button.ghost { background: transparent; border: 1px solid var(--border); color: var(--text); }
     button:active { transform: translateY(1px); }
+    /* Shorter green button on desktop; full-width on mobile */
     .primary-large {
       display: inline-block;
       font-size: 16px;
@@ -174,7 +175,7 @@ best truck accident lawyer"></textarea>
         </table>
       </div>
       <div class="assumptions">
-        Assumptions: local “near me”/city terms → Exact; administrative/info terms are shown as Low intent.
+        Rule of thumb: generic head terms default to Medium unless they include local (near me/city), urgency/CTA, quality (best/top), or niche case signals. Admin/info terms show as Low.
       </div>
     </div>
   </section>
@@ -235,16 +236,17 @@ best truck accident lawyer"></textarea>
     function detectUrgency(n) { return includesPhrase(n, URGENCY); }
     function detectQual(n) { return includesPhrase(n, QUALIFIERS); }
     function detectNearMe(n) { return n.includes("near me") || n.includes("nearby"); }
-    function detectHeadMatch(norm, heads) { return heads.some(h => norm.includes(tokenize(h))); }
+    function detectHeadMatch(n, heads) { return heads.some(h => n.includes(tokenize(h))); }
     function wordCount(s) { return s.split(/\s+/).filter(Boolean).length; }
 
-    function isGenericShort(norm, practiceHeads) {
-      const mods = [...URGENCY, ...QUALIFIERS, "near me"];
+    // Generic head = practice + lawyer/attorney/law firm (plural ok), <=4 words, no modifiers
+    function isGenericHead(norm, practiceHeads) {
+      const mods = [...URGENCY, ...QUALIFIERS, "free consultation", "call", "hire", "schedule", "book", "speak to", "open now", "same day", "after hours"];
       const hasMods = includesPhrase(norm, mods);
       const wc = wordCount(norm);
       const hasCommercial = detectCommercial(norm);
       const matchesHead = detectHeadMatch(norm, practiceHeads);
-      return hasCommercial && matchesHead && !hasMods && wc <= 3;
+      return hasCommercial && matchesHead && !hasMods && wc <= 4;
     }
 
     function matchTypeSuggestion(norm, opts) {
@@ -254,11 +256,11 @@ best truck accident lawyer"></textarea>
       const hasLoc = anyLocationMatch(norm, locations);
       const hasUrgency = detectUrgency(norm);
       const hasQual = detectQual(norm);
-      const generic = isGenericShort(norm, practiceHeads);
+      const generic = isGenericHead(norm, practiceHeads);
       const hasCommercial = detectCommercial(norm);
 
       if (nearMeExact && (hasNear || hasLoc)) return { type: "Exact" };
-      if (generic) return { type: "Exact" };
+      if (generic) return { type: "Exact" }; // generic heads benefit from Exact
       if (hasUrgency || hasQual) return { type: "Phrase" };
       if (hasCommercial) return { type: "Phrase" };
       return { type: "Exclude" };
@@ -266,16 +268,18 @@ best truck accident lawyer"></textarea>
 
     function classifyIntent(norm, ctx) {
       const { locations, practiceHeads } = ctx;
-      const isLow = detectLowIntent(norm);
+      const isLowAdmin = detectLowIntent(norm);
       const isInfo = detectInfo(norm);
       const isComm = detectCommercial(norm);
       const isUrg = detectUrgency(norm);
       const isQual = detectQual(norm);
       const isNear = detectNearMe(norm) || anyLocationMatch(norm, locations);
       const headHit = detectHeadMatch(norm, practiceHeads);
+      const generic = isGenericHead(norm, practiceHeads);
 
-      if (isLow) return { intent: "Low", mt: { type: "Exclude" } };
+      if (isLowAdmin) return { intent: "Low", mt: { type: "Exclude" } };
 
+      // Score
       let score = 0;
       if (isComm) score += 3;
       if (isUrg) score += 2;
@@ -286,8 +290,11 @@ best truck accident lawyer"></textarea>
 
       let level = "Medium";
       if (score >= 4) level = "High";
-      else if (score <= 1) level = isComm ? "Medium" : "Low";
-      if (isComm) level = "High";
+      else if (score <= 0) level = isComm ? "Medium" : "Low";
+
+      // Enforce generic rule: generic heads without strong modifiers/local => Medium
+      const hasStrongMods = isUrg || isQual || isNear;
+      if (generic && !hasStrongMods) level = "Medium";
 
       const mt = matchTypeSuggestion(norm, { nearMeExact: DEFAULTS.nearMeExact, excludeLow: DEFAULTS.excludeLow, locations, practiceHeads });
       return { intent: level, mt };
@@ -356,7 +363,6 @@ best truck accident lawyer"></textarea>
       if (best && best[1] > 0) return best[0];
       return null;
     }
-
     function detectHeadMatch(norm, heads) { return heads.some(h => norm.includes(tokenize(h))); }
 
     function generateGaps({ practiceArea, locations, currentNormSet }) {
@@ -383,6 +389,7 @@ best truck accident lawyer"></textarea>
       const prioritized = heads.slice(0, 6);
       for (const h of prioritized) {
         const hClean = h.replace(/\blawyer\b|\battorney\b|\blaw firm\b/g, "").trim() || h;
+
         for (const f of panicFrames) {
           const kw = f.replace("{h}", hClean);
           if (!currentNormSet.has(tokenize(kw))) suggest.push({ kw, tags: ["panic","commercial"] });
