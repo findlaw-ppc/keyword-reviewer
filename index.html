@@ -1,7 +1,7 @@
 <!DOCTYPE html><html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Legal PPC Keyword Reviewer – SMART + SIMPLE</title>
+  <title>Legal PPC Keyword Reviewer</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     :root {
@@ -69,8 +69,8 @@
     tr:last-child td { border-bottom: none; }
     .badge { display: inline-flex; align-items: center; gap: 6px; padding: 2px 8px; border-radius: 999px; font-size: 12px; font-weight: 600; }
     .high { background: rgba(34,197,94,.12); color: #86efac; border: 1px solid rgba(34,197,94,.25); }
-    .med { background: rgba(245,158,11,.12); color: #facc15; border: 1px solid rgba(245,158,11,.25); }
-    .low { background: rgba(239,68,68,.12); color: #fca5a5; border: 1px solid rgba(239,68,68,.25); }
+    .med  { background: rgba(245,158,11,.12); color: #facc15; border: 1px solid rgba(245,158,11,.25); }
+    .low  { background: rgba(239,68,68,.12); color: #fca5a5; border: 1px solid rgba(239,68,68,.25); }
     .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; }
     .copybox { width: 100%; background: #0b1220; border: 1px solid var(--border); border-radius: 8px; padding: 10px; color: var(--text); min-height: 100px; resize: vertical; }
     .note { color: var(--muted); font-size: 12px; }
@@ -82,10 +82,10 @@
       display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 999px; font-size: 12px; border: 1px solid var(--border); background: #0b1220; color: #cbd5e1;
     }
     .sum-high { color: #86efac; border-color: rgba(34,197,94,.25); }
-    .sum-med { color: #facc15; border-color: rgba(245,158,11,.25); }
-    .sum-low { color: #fca5a5; border-color: rgba(239,68,68,.25); }
-    .sum-total { color: #a7b0c3; }
-    .sum-neg { color: #fca5a5; }
+    .sum-med  { color: #facc15; border-color: rgba(245,158,11,.25); }
+    .sum-low  { color: #fca5a5; border-color: rgba(239,68,68,.25); }
+    .sum-total{ color: #a7b0c3; }
+    .sum-neg  { color: #fca5a5; }
     .btn-mini { padding: 6px 8px; font-size: 12px; border-radius: 8px; }
   </style>
 </head>
@@ -93,7 +93,7 @@
   <div class="container">
     <header>
       <h1>Legal PPC Keyword Reviewer</h1>
-      <p class="lead">SMART + SIMPLE: Paste your keywords and click Run. We’ll analyze intent, recommend match types, and suggest high-intent phrase-match gaps.</p>
+      <p class="lead">Paste your keywords and click Run. We’ll analyze intent, recommend match types, and suggest high-intent phrase-match gaps.</p>
     </header><section class="card">
   <h2>Campaign Inputs</h2>
   <div class="row row-2">
@@ -167,8 +167,7 @@ best truck accident lawyer"></textarea>
   <div class="section-title">
     <h2>High-Intent Keyword Suggestions (Phrase Match)</h2>
     <div class="controls">
-      <button class="ghost" id="copyGapAdsBtn" title="Copy all suggestions as phrase-match for Google Ads">Copy all (Google Ads — Phrase)</button>
-      <button class="ghost" id="copyGapTableBtn" title="Copy pipe-delimited table">Copy table (| delimited)</button>
+      <button class="ghost" id="copyGapAdsBtn" title="Copy all suggestions as phrase-match for Google Ads">Copy all</button>
     </div>
   </div>
 
@@ -198,10 +197,8 @@ best truck accident lawyer"></textarea>
   </div>
 </section>
   </div>  <script>
-    // Defaults (no UI toggles)
     const DEFAULTS = { nearMeExact: true, excludeLow: true, includeMatchType: true };
 
-    // Dictionaries
     const ADMIN_LOW = ["form","forms","template","sample","pdf","statute","code","subsection","definition","meaning","requirements","eligibility","statutory","clerk","address","phone","hours","directions","location","dmv","uscis","ice","dol","court calendar","case lookup","docket","public records","record search","file online","pay ticket","traffic school","fine payment","how to become","jobs","job","salary","internship","bar exam","law school","pro bono","legal aid","public defender","self help","diy","wiki","reddit"];
     const INFO_MED = ["what is","how to","penalties","punishment","statute of limitations","average settlement","settlement","compensation","damages","fault","process","steps","timeline","rights","can i","should i","best time to"];
     const COMMERCIAL_TERMS = ["lawyer","attorney","law firm","defense attorney","counsel"];
@@ -224,7 +221,6 @@ best truck accident lawyer"></textarea>
       "medical malpractice": { heads: ["medical malpractice","birth injury","surgical error","misdiagnosis","hospital negligence","nursing error","medication error","anesthesia error","er negligence","failure to diagnose"] }
     };
 
-    // Helpers
     function tokenize(s) {
       return (s || "").toLowerCase().replace(/[“”"’']/g, "").replace(/[^\w\s\-]/g, " ").replace(/\s+/g, " ").trim();
     }
@@ -297,12 +293,7 @@ best truck accident lawyer"></textarea>
       else if (score <= 1) level = isComm ? "Medium" : "Low";
       if (isComm && !isPricey) level = "High";
 
-      const mt = matchTypeSuggestion(norm, {
-        nearMeExact: DEFAULTS.nearMeExact,
-        excludeLow: DEFAULTS.excludeLow,
-        locations,
-        practiceHeads
-      });
+      const mt = matchTypeSuggestion(norm, { nearMeExact: DEFAULTS.nearMeExact, excludeLow: DEFAULTS.excludeLow, locations, practiceHeads });
 
       const reasons = [];
       if (isComm) reasons.push("commercial legal intent (‘lawyer/attorney’)");
@@ -323,7 +314,16 @@ best truck accident lawyer"></textarea>
 
     function parseLocations(raw) { if (!raw) return []; return raw.split(/[;,]/g).map(s => s.trim()).filter(Boolean); }
 
-    function toQuoted(k) { const t = k.trim(); return /^".*"$$/.test(t) ? t : `"$${t}"`; }
+    // Sanitize and quote for Ads; strips stray $, quotes, extra spaces
+    function normalizeForAds(k) {
+      let t = (k || "").trim();
+      t = t.replace(/^["']+/, "");    // leading quotes
+      t = t.replace(/["']+$/, "");    // trailing quotes
+      t = t.replace(/^\$+/, "");      // leading dollar signs
+      t = t.replace(/\s+/g, " ");     // collapse spaces
+      return t;
+    }
+    function toQuoted(k) { const t = normalizeForAds(k); return `"${t}"`; }
     function buildPhraseList(rows) { return rows.map(r => toQuoted(r.keyword)).join("\n"); }
 
     function renderTable(tbody, rows) {
@@ -335,7 +335,6 @@ best truck accident lawyer"></textarea>
         const tdR = document.createElement("td");
 
         tdK.textContent = r.keyword;
-
         const badge = document.createElement("span");
         badge.className = "badge " + (r.intent === "High" ? "high" : r.intent === "Medium" ? "med" : "low");
         badge.textContent = r.intent;
@@ -359,7 +358,7 @@ best truck accident lawyer"></textarea>
         const tdK = document.createElement("td");
         const kSpan = document.createElement("span");
         kSpan.className = "mono";
-        kSpan.textContent = toQuoted(r.keyword);
+        kSpan.textContent = toQuoted(r.keyword); // shows sanitized + quoted
         tdK.appendChild(kSpan);
 
         const tdI = document.createElement("td");
@@ -379,8 +378,9 @@ best truck accident lawyer"></textarea>
         btn.className = "ghost btn-mini";
         btn.textContent = "Copy";
         btn.addEventListener("click", () => {
-          if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(toQuoted(r.keyword));
-          else copyToClipboard(toQuoted(r.keyword));
+          const out = toQuoted(r.keyword);
+          if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(out);
+          else copyToClipboard(out);
         });
         tdC.appendChild(btn);
 
@@ -391,11 +391,15 @@ best truck accident lawyer"></textarea>
 
     function dedupeKeepOrder(arr) {
       const seen = new Set(); const out = [];
-      for (const x of arr) { const key = tokenize(x); if (!key || seen.has(key)) continue; seen.add(key); out.push(x.trim()); }
+      for (const x of arr) {
+        const key = tokenize(x);
+        if (!key || seen.has(key)) continue;
+        seen.add(key); out.push(x.trim());
+      }
       return out;
     }
 
-    // SMART: auto-detect practice area if the field is blank
+    // Auto-detect practice area if blank
     function autoDetectPracticeArea(keywords) {
       const scores = {};
       const keysNorm = keywords.map(k => tokenize(k));
@@ -409,7 +413,7 @@ best truck accident lawyer"></textarea>
       return null;
     }
 
-    // GAP suggestion generator
+    // Intent gaps
     function generateGaps({ practiceArea, locations, currentNormSet }) {
       const heads = (PRACTICE_PROFILES[practiceArea]?.heads) || (practiceArea ? [practiceArea] : []);
       if (heads.length === 0) return [];
@@ -457,9 +461,7 @@ best truck accident lawyer"></textarea>
       const rows = limited.map(s => {
         const norm = tokenize(s.kw);
         const practiceHeads = PRACTICE_PROFILES[practiceArea]?.heads || [];
-        const { intent, reason } = classifyIntent(norm, {
-          locations, practiceHeads, includeMatchType: DEFAULTS.includeMatchType
-        });
+        const { intent, reason } = classifyIntent(norm, { locations, practiceHeads, includeMatchType: DEFAULTS.includeMatchType });
         let why = reason;
         if (s.tags.includes("panic")) why = "High-intent “panic” query. " + why;
         else if (s.tags.includes("local")) why = "Local commercial intent. " + why;
@@ -479,9 +481,8 @@ best truck accident lawyer"></textarea>
       const lines = raw.split(/\n/).map(s => s.trim()).filter(Boolean);
       const keywords = dedupeKeepOrder(lines);
 
-      // Auto-detect practice area if empty
-      const auto = !practiceArea;
-      if (auto) {
+      // Auto-detect if blank
+      if (!practiceArea) {
         const detected = autoDetectPracticeArea(keywords);
         if (detected) {
           practiceArea = detected;
@@ -535,7 +536,6 @@ best truck accident lawyer"></textarea>
       `;
       summary.style.display = "flex";
 
-      // Render table
       const tbody = document.querySelector("#recTable tbody");
       renderTable(tbody, rows);
       document.getElementById("recEmpty").style.display = "none";
@@ -549,9 +549,7 @@ best truck accident lawyer"></textarea>
     function genGaps(ctx) {
       const practiceArea = (ctx.practiceArea || "").toLowerCase().trim();
       const locations = ctx.locations || [];
-
       const normSet = new Set((ctx.keywords || []).map(k => tokenize(k)));
-
       const gapRows = generateGaps({ practiceArea, locations, currentNormSet: normSet });
       gapCache = gapRows;
 
@@ -569,7 +567,6 @@ best truck accident lawyer"></textarea>
       document.getElementById("gapSection").scrollIntoView({ behavior: "smooth", block: "start" });
     }
 
-    // Run both
     function runAll() {
       const ctx = analyze();
       if (!ctx) return;
@@ -606,15 +603,7 @@ best truck accident lawyer"></textarea>
     }
     document.getElementById("copyGapAdsBtn").addEventListener("click", () => {
       if (!gapCache.length) return;
-      const payload = gapCache.map(r => `"${r.keyword.trim()}"`).join("\n");
-      if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(payload);
-      else copyToClipboard(payload);
-    });
-    document.getElementById("copyGapTableBtn").addEventListener("click", () => {
-      if (!gapCache.length) return;
-      const payload = [["Keyword","Search Intent (High/Med/Low)","Rationale"].join(" | ")]
-        .concat(gapCache.map(r => [r.keyword, r.intent, r.rationale].join(" | ")))
-        .join("\n");
+      const payload = gapCache.map(r => toQuoted(r.keyword)).join("\n");
       if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(payload);
       else copyToClipboard(payload);
     });
